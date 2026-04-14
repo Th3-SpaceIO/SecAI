@@ -8,6 +8,7 @@ import docx
 import pdfplumber
 import hashlib
 from charset_normalizer import from_path
+from chunker import DocumentChunker
 
 
 class DocumentLoader:
@@ -106,16 +107,17 @@ class DocumentLoader:
         try:
             result = from_path(path).best()
 
-            if not result:
-                raise ValueError("Could not detect encoding or extract text")
+            if result is None:
+                raise ValueError("Could not detect encoding")
 
-            text = result.output()
+            text = str(result)
 
-            if not text or not text.strip():
+            if not text.strip():
                 raise ValueError("TXT file is empty or unreadable")
 
             return text.strip(), {
-                "encoding": result.encoding
+                "encoding": result.encoding,
+                "confidence": getattr(result, "confidence", None)
             }
 
         except Exception as e:
@@ -160,30 +162,40 @@ class DocumentLoader:
         return hasher.hexdigest()
 
 
-# ===============================
-# TEST ENTRY POINT
-# ===============================
-if __name__ == "__main__":
+# ===============================#
+#    TEST ENTRY POINT            #
+#================================#
+
+
+
+
+
+
+def main():
     loader = DocumentLoader()
 
-    test_files = [
-        "test_files/sample.pdf",
-        "test_files/sample.docx",
-        "test_files/sample.txt",
-        "test_files/sample.csv",
-        "test_files/sample.pdf",  # Duplicate for hash testing
-        "test_files/unsupported_file.xyz"  # Unsupported file type
-        #r"D:\DEVELOPMENT FOLDER\NOUN_300 SECOND SEMESTER\cit309\COMPUTER ARCHITECTURE.pdf"
-    ]
+    file_path = Path("test_files/sample.txt")
 
-    for file in test_files:
-        try:
-            result = loader.load_document(file)
-            print("\n==============================")
-            print(f"Loaded: {file}")
-            print(result)
+    try:
+        result = loader.load_document(file_path)
 
-        except Exception as e:
-            print("\n==============================")
-            print(f"Failed: {file}")
-            print(e)
+        print("\n==============================")
+        print("DOCUMENT LOADED SUCCESSFULLY")
+        print("==============================\n")
+
+        print("CONTENT:")
+        print(result["content"][:500])  # preview only
+
+        print("\nMETADATA:")
+        for key, value in result["metadata"].items():
+            print(f"{key}: {value}")
+
+    except Exception as e:
+        print("\n==============================")
+        print("ERROR LOADING DOCUMENT")
+        print("==============================\n")
+        print(str(e))
+
+
+if __name__ == "__main__":
+    main()
