@@ -1,0 +1,28 @@
+ML ENGINEER FOLDER STRUCTURE
+
+ml_engine/
+
+├── ingest/
+│   ├── document_loader.py
+│   ├── chunker.py
+│   ├── embedder.py
+│   └── knowledge_graph/
+│       ├── entity_extractor.py
+│       └── neo4j_loader.py
+
+├── retrievers/
+│   ├── chroma_retriever.py
+│   ├── keyword_search.py
+│   └── hybrid_fusion.py
+
+├── services/
+│   ├── rag_pipeline.py
+│   └── citation_extractor.py
+
+├── evaluation/
+│   └── evaluate_retrieval.py
+
+├── knowledge_base/
+│   ├── raw/
+│   ├── processed/
+│   └── schemas/

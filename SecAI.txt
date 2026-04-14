@@ -1,0 +1,415 @@
+/secai-assistant
+├──  backend/
+│   ├──  app/
+│   │   ├── __init__.py
+│   │   ├── main.py                  FastAPI entry point
+│   │   ├──  api/
+│   │   │   ├──  routes/
+│   │   │   │   ├── chat.py
+│   │   │   │   ├── documents.py
+│   │   │   │   └── feedback.py
+│   │   │   └──  dependencies/
+│   │   ├──  core/
+│   │   │   ├── config.py
+│   │   │   ├── security.py
+│   │   │   └── logging.py
+│   │   ├──  services/
+│   │   │   ├── rag_pipeline.py
+│   │   │   ├── llm_service.py
+│   │   │   ├── memory_service.py
+│   │   │   └── citation_extractor.py
+│   │   ├──  retrievers/
+│   │   │   ├── chroma_retriever.py
+│   │   │   ├── keyword_search.py
+│   │   │   └── hybrid_fusion.py
+│   │   └──  models/
+│   │       ├── schemas.py
+│   │       └── domain_models.py
+│   ├──  ingest/
+│   │   ├── document_loader.py
+│   │   ├── chunker.py
+│   │   ├── embedder.py
+│   │   └── knowledge_graph/
+│   │       ├── entity_extractor.py
+│   │       └── neo4j_loader.py
+│   ├──  prompts/
+│   │   ├── system_prompt.txt
+│   │   ├── citation_prompt.txt
+│   │   └── templates/
+│   ├── Dockerfile
+│   └── requirements.txt
+├──  frontend/
+│   ├──  src/
+│   │   ├──  components/
+│   │   │   ├── ChatInterface.tsx
+│   │   │   ├── CitationRenderer.tsx
+│   │   │   └── DocumentUploader.tsx
+│   │   ├──  hooks/
+│   │   │   └── useChat.ts
+│   │   └──  services/
+│   │       └── api.ts
+│   └── package.json
+├──  knowledge_base/
+│   ├──  raw/                      Original documents
+│   ├──  processed/                Chunked + metadata
+│   └──  schemas/                  Entity schemas
+├──  scripts/
+│   ├── ingest_documents.py
+│   └── evaluate_retrieval.py
+├──  tests/
+│   ├── test_rag.py
+│   └── test_integration.py
+└── docker-compose.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+┌─────────────────────────────────────────────────────────────┐
+│                    Client Interface                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │   Web Chat   │  │  Slack Bot   │  │   VS Code    │      │
+│  │   (React)    │  │   (Bolt)     │  │   Extension  │      │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
+└─────────┼─────────────────┼─────────────────┼──────────────┘
+          │                 │                 │
+          └─────────────────┴─────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                 API Gateway (FastAPI)                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │  Rate Limit  │  │   Auth/JWT   │  │   Request    │      │
+│  │   (SlowAPI)  │  │   (OAuth2)   │  │   Validation │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+          ┌─────────────────┴─────────────────┐
+          ▼                                   ▼
+┌──────────────────────┐        ┌──────────────────────────┐
+│   Memory Management   │        │      RAG Pipeline         │
+│  ┌────────────────┐  │        │  ┌──────────────────┐    │
+│  │  Conversation  │  │        │  │  Query           │    │
+│  │  History       │  │        │  │  Understanding   │    │
+│  │  (Redis)       │  │        │  │  (Intent Class.) │    │
+│  └────────────────┘  │        │  └──────────────────┘    │
+└──────────────────────┘        │           │              │
+                                ▼           ▼              │
+                        ┌────────────────────────┐         │
+                        │  Hybrid Retriever      │         │
+                        │  ┌──────┐  ┌────────┐  │         │
+                        │  │Dense │  │Keyword │  │         │
+                        │  │Search│  │Search  │  │         │
+                        │  └──────┘  └────────┘  │         │
+                        └──────────┬─────────────┘         │
+                                   │                       │
+                        ┌──────────▼──────────┐           │
+                        │  Reranker           │           │
+                        │  (Cross-Encoder)    │           │
+                        └──────────┬──────────┘           │
+                                   │                       │
+┌──────────────────────────────────┼───────────────────────┘
+│                                  │
+│  ┌───────────────────────────────▼─────────────────────┐ │
+│  │              Context Assembly                        │ │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  │ │
+│  │  │  Retrieved   │  │  Knowledge   │  │ Conversation│ │
+│  │  │  Documents   │  │  Graph Data  │  │  History   │ │
+│  │  └──────────────┘  └──────────────┘  └──────────┘  │ │
+│  └───────────────────────────────┬─────────────────────┘ │
+│                                  ▼                       │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │              LLM Engine (Claude API)                 │ │
+│  │  - System Prompt (Cybersecurity Expert Persona)      │ │
+│  │  - Citation Requirements                             │ │
+│  │  - Safety Filters                                    │ │
+│  └─────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌──────────────────────────────────────────────────────────┐
+│              Knowledge Base Layer                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │  ChromaDB    │  │  Neo4j       │  │  Document    │   │
+│  │  (Vectors)   │  │  (Entities)  │  │  Store       │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+└──────────────────────────────────────────────────────────┘
+
+
+
+
+
+
+
+
+
+
+Here is the file-level specification for Project 4 — SecAI Assistant, organized by directory.
+
+---
+
+ --/backend/app/--
+
+ --main.py--
+What: FastAPI application entry point. Mounts static files, initializes LangChain components on startup, configures CORS, and handles graceful shutdown of vector DB connections.
+Time: 4–6 hours
+Skills: FastAPI lifecycle management, ASGI configuration, dependency injection patterns, async resource initialization
+
+ --core/config.py--
+What: Pydantic settings for all external services. Claude API keys, ChromaDB path, embedding model selection, rate limits, and memory configuration with secrets management.
+Time: 3–4 hours
+Skills: Pydantic v2, environment variable management, secrets rotation, configuration validation, 12-factor app principles
+
+ --core/security.py--
+What: Authentication and authorization layer. JWT validation, API key management for service accounts, request signing verification, and audit logging of sensitive queries.
+Time: 6–8 hours
+Skills: OAuth2/OIDC, JWT implementation, RBAC/ABAC design, cryptography, security audit patterns
+
+ --core/logging.py--
+What: Structured logging with PII redaction. Captures query patterns (not content) for analytics, implements tamper-evident audit trails for compliance.
+Time: 4–5 hours
+Skills: Structured logging (JSON), log aggregation, PII detection/redaction, audit trail design, compliance (GDPR/SOC2)
+
+---
+
+ --/backend/app/api/routes/--
+
+ --chat.py--
+What: Core chat endpoint handling streaming responses. Manages conversation context retrieval, RAG pipeline invocation, citation extraction, and response token streaming via WebSockets or SSE.
+Time: 10–12 hours
+Skills: FastAPI streaming responses, WebSockets/Server-Sent Events, LangChain integration, async generators, connection management
+
+ --documents.py--
+What: Document management endpoints. Upload, list, delete knowledge base documents with async processing queue for ingestion. Supports PDF, Markdown, DOCX, HTML.
+Time: 8–10 hours
+Skills: File upload handling, async task queues (Celery/ARQ), document format validation, progress tracking, multipart form data
+
+ --feedback.py--
+What: User feedback capture for RAG improvement. Thumbs up/down on responses, source relevance rating, and correction submissions that trigger re-ingestion workflows.
+Time: 4–6 hours
+Skills: Feedback loop design, data quality metrics, user rating systems, retraining triggers
+
+ --memory.py--
+What: Conversation memory management. List user chat history, rename/delete conversations, export transcripts, and manage conversation summarization.
+Time: 4–6 hours
+Skills: Conversation state management, pagination, data retention policies, summarization integration
+
+---
+
+ --/backend/app/services/--
+
+ --rag_pipeline.py--
+What: Central RAG orchestrator. Coordinates query analysis, hybrid retrieval, context assembly, and response generation. Implements query rewriting and hypothetical document embedding (HyDE).
+Time: 14–18 hours
+Skills: LangChain/LangGraph, RAG architecture, query transformation, context window management, retrieval optimization
+
+ --llm_service.py--
+What: Claude API client with resilience patterns. Handles rate limiting, token budget management, retry with exponential backoff, and model fallback (Haiku/Sonnet/Opus selection).
+Time: 8–10 hours
+Skills: Anthropic API, prompt engineering, token counting, circuit breakers, cost optimization, streaming handling
+
+ --memory_service.py--
+What: Conversation context management. Retrieves relevant chat history, summarizes long conversations, and maintains user preference profiles across sessions.
+Time: 6–8 hours
+Skills: Conversation buffers, summarization chains, entity extraction, preference learning, Redis/PostgreSQL for session storage
+
+ --citation_extractor.py--
+What: Source attribution engine. Maps LLM response segments to retrieved document chunks, validates citations exist in source material, and formats inline references.
+Time: 8–10 hours
+Skills: Text alignment algorithms, source verification, citation formatting, hallucination detection, evidence tracing
+
+---
+
+ --/backend/app/retrievers/--
+
+ --chroma_retriever.py--
+What: Dense vector search implementation. Manages embedding generation, similarity search with metadata filtering, and result reranking integration.
+Time: 6–8 hours
+Skills: ChromaDB, embedding models (OpenAI/HuggingFace), vector similarity, metadata filters, index optimization
+
+ --keyword_search.py--
+What: BM25/TF-IDF lexical search using SQLite FTS or Elasticsearch. Handles exact match requirements and acronym expansion that vector search misses.
+Time: 6–8 hours
+Skills: Full-text search, BM25 algorithm, SQLite FTS5 or Elasticsearch, query parsing, stemming/tokenization
+
+ --hybrid_fusion.py--
+What: Reciprocal Rank Fusion combining dense and sparse results. Weighted scoring, deduplication, and dynamic weight adjustment based on query type.
+Time: 4–6 hours
+Skills: Information retrieval theory, rank fusion algorithms, result deduplication, query classification
+
+ --knowledge_graph.py--
+What: Neo4j integration for entity-based retrieval. Extracts entities from queries, traverses relationships (CVE affects Product, Tool mitigates Threat), and enriches context with connected knowledge.
+Time: 10–12 hours
+Skills: Graph databases (Neo4j/Cypher), entity extraction, graph traversal, knowledge graph construction, link prediction
+
+---
+
+ --/backend/ingest/--
+
+ --document_loader.py--
+What: Universal document parser. Handles PDF (text + images), Markdown, DOCX, HTML, and Confluence exports. Extracts structure (headers, sections) for semantic chunking.
+Time: 8–10 hours
+Skills: Document parsing libraries (PyPDF2, python-docx, BeautifulSoup), OCR (Tesseract), layout analysis, format detection
+
+ --chunker.py--
+What: Intelligent text segmentation. Semantic chunking using sentence transformers, preserving context boundaries, and maintaining header hierarchies for structure-aware retrieval.
+Time: 6–8 hours
+Skills: NLP segmentation, semantic similarity, chunk size optimization, overlap strategies, hierarchical structure preservation
+
+ --embedder.py--
+What: Embedding generation service. Batches documents for efficient API usage, caches embeddings, supports multiple providers (OpenAI, Cohere, local models), and handles dimensionality reduction.
+Time: 4–6 hours
+Skills: Embedding APIs, batch processing, caching strategies, vector normalization, model selection
+
+ --knowledge_graph/entity_extractor.py--
+What: Named entity recognition for security domain. Extracts CVE IDs, CWE categories, tool names, attack techniques (MITRE ATT&CK), and product versions using spaCy + regex + LLM.
+Time: 8–10 hours
+Skills: NER models, domain-specific entity recognition, MITRE ATT&CK mapping, regex engineering, LLM-based extraction
+
+ --knowledge_graph/neo4j_loader.py--
+What: Graph population pipeline. Creates nodes (entities) and edges (relationships) from extracted information, handles deduplication, and maintains graph schema constraints.
+Time: 6–8 hours
+Skills: Graph data modeling, Cypher query optimization, batch imports, schema design, constraint management
+
+---
+
+ --/backend/prompts/--
+
+ --system_prompt.txt--
+What: Core persona definition. Instructions for Claude to act as cybersecurity expert, response formatting rules (citations required, uncertainty admission), and safety constraints (no exploit code generation).
+Time: 4–6 hours
+Skills: Prompt engineering, persona design, safety alignment, instruction clarity, few-shot example crafting
+
+ --citation_prompt.txt--
+What: Citation format specification. Instructions for inline source referencing, handling multiple sources, and distinguishing between retrieved knowledge vs. parametric knowledge.
+Time: 2–3 hours
+Skills: Structured output prompting, citation format design, source attribution clarity
+
+ --templates/query_expansion.txt--
+What: Query rewriting template for HyDE. Generates hypothetical ideal answers to improve retrieval relevance for ambiguous security questions.
+Time: 2–3 hours
+Skills: Hypothetical document embedding, query understanding, retrieval augmentation
+
+ --templates/summarization.txt--
+What: Conversation condensation template. Maintains key decisions and open questions when truncating long chat history to fit context limits.
+Time: 2–3 hours
+Skills: Summarization prompting, information preservation, conversation state management
+
+---
+
+ --/frontend/src/components/--
+
+ --ChatInterface.tsx--
+What: Main chat UI with message threading. Supports markdown rendering, code syntax highlighting, citation click-to-source, and streaming text animation.
+Time: 10–12 hours
+Skills: React 18+, TypeScript, streaming UI patterns, markdown processing (react-markdown), code highlighting (Prism), scroll management
+
+ --CitationRenderer.tsx--
+What: Interactive citation component. Renders inline superscript numbers linking to source cards with document preview, relevance score, and direct link to original.
+Time: 6–8 hours
+Skills: Tooltip/popover design, document preview generation, source verification UI, accessibility (screen reader support)
+
+ --DocumentUploader.tsx--
+What: Drag-and-drop knowledge base management. Progress tracking, format validation, ingestion status polling, and duplicate detection warnings.
+Time: 6–8 hours
+Skills: React dropzone, file upload progress, async polling, error handling, optimistic UI updates
+
+ --SourcePanel.tsx--
+What: Collapsible sidebar showing retrieved documents for current response. Allows filtering by source type, expanding relevant sections, and providing feedback on usefulness.
+Time: 6–8 hours
+Skills: Sidebar layout, document viewer integration, relevance feedback UI, state synchronization
+
+ --ConversationSidebar.tsx--
+What: Chat history navigation. List of past conversations with search, date grouping, pin/star favorites, and bulk delete operations.
+Time: 4–6 hours
+Skills: Navigation patterns, virtual scrolling, search/filter implementation, optimistic updates
+
+---
+
+ --/frontend/src/hooks/--
+
+ --useChat.ts--
+What: Core chat state management. Handles message history, streaming response accumulation, error recovery, and optimistic UI for user messages.
+Time: 6–8 hours
+Skills: React hooks (useReducer), WebSocket/SSE management, error boundaries, state persistence, race condition handling
+
+ --useStreaming.ts--
+What: Server-sent events consumer. Manages connection lifecycle, reconnection logic, buffer management for smooth text animation, and cancellation.
+Time: 4–6 hours
+Skills: EventSource API, streaming protocols, buffering strategies, connection resilience
+
+---
+
+ --/knowledge_base/--
+
+ --raw/--
+Directory: Original uploaded documents (PDFs, Markdown, etc.) before processing. Organized by source type (courses, writeups, documentation).
+Management: Git LFS for version control or cloud storage sync.
+Skills: Document organization, metadata tagging, access control
+
+ --processed/--
+Directory: Chunked documents with embeddings and metadata. JSONL format with vector embeddings, source references, and processing timestamps.
+Skills: Data pipeline management, format versioning, quality checks
+
+ --schemas/--
+Directory: Entity relationship definitions for knowledge graph. JSON schemas defining node types (CVE, Tool, Technique) and allowed edge relationships.
+Time: 4–6 hours to define
+Skills: Ontology design, schema validation, graph modeling, security domain taxonomy
+
+---
+
+ --/scripts/--
+
+ --ingest_documents.py--
+What: CLI tool for bulk document processing. Recursively processes directories, handles updates vs. new files, and generates ingestion reports.
+Time: 3–4 hours
+Skills: CLI design (Typer/Click), batch processing, idempotency, progress bars (Rich)
+
+ --evaluate_retrieval.py--
+What: RAG evaluation framework. Tests retrieval accuracy on benchmark questions, measures hit-rate@K, MRR, and identifies failure modes for improvement.
+Time: 6–8 hours
+Skills: Information retrieval metrics, evaluation dataset creation, A/B testing, statistical analysis
+
+---
+
+ Root Configuration
+
+ --docker-compose.yml--
+What: Full stack with GPU support for embeddings, ChromaDB persistence, Neo4j with APOC plugins, Redis for caching, and separated services for scaling.
+Time: 4–6 hours
+Skills: Multi-service orchestration, GPU container setup, volume management, network isolation, health checks
+
+ --pyproject.toml-- (backend)
+What: Python dependencies with optional groups: --core--, --dev--, --gpu-- (CUDA-enabled torch), and --onnx-- for optimized inference.
+Time: 2–3 hours
+Skills: Modern Python packaging, optional dependencies, version pinning, platform-specific requirements
+
+ --package.json-- (frontend)
+What: React + TypeScript + Vite setup. TanStack Query for server state, Zustand for client state, Tailwind for styling, and testing libraries.
+Time: 2–3 hours
+Skills: Frontend toolchain, dependency management, build optimization, TypeScript configuration
+
+---
+
+
+ PROJECT TIMELINE
+
+Week 1: Core infrastructure (config, logging, security) + document ingestion pipeline  
+Week 2: Chunking/embedding + ChromaDB setup + basic retriever  
+Week 3: RAG pipeline + Claude integration + streaming responses  
+Week 4: Citation system + knowledge graph (Neo4j) integration  
+Week 5: Frontend chat UI + source panel + document upload  
+Week 6: Memory/conversation management + feedback loops  
+Week 7: Hybrid search (keyword + vector) + reranking  
+Week 8: Evaluation framework + optimization + documentation
