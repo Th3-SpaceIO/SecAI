@@ -1,0 +1,113 @@
+# =========================
+# IGNORE EVERYTHING BY DEFAULT
+# =========================
+*
+
+# =========================
+# ALLOW GIT SYSTEM FILES
+# =========================
+!.gitignore
+!README.md
+
+# =========================
+# BACKEND CORE
+# =========================
+!backend/
+!backend/app/
+!backend/app/_init_.py
+!backend/app/core/
+!backend/app/core/config.py
+!backend/app/core/logging.py
+!backend/app/core/security.py
+!backend/app/dependencies/
+!backend/app/dependencies/file_name.py
+!backend/app/main.py
+
+# MODELS
+!backend/app/models/
+!backend/app/models/domain_models.py
+!backend/app/models/schemas.py
+
+# RETRIEVERS
+!backend/app/retrievers/
+!backend/app/retrievers/chroma_retriever.py
+!backend/app/retrievers/hybrid_fusion.py
+!backend/app/retrievers/keyword_search.py
+
+# ROUTES
+!backend/app/routes/
+!backend/app/routes/chat.py
+!backend/app/routes/documents.py
+!backend/app/routes/feedback.py
+
+# SERVICES
+!backend/app/services/
+!backend/app/services/citation_extractor.py
+!backend/app/services/llm_service.py
+!backend/app/services/memory_service.py
+!backend/app/services/rag_pipeline.py
+
+# INGEST
+!backend/ingest/
+!backend/ingest/chunker.py
+!backend/ingest/document_loader.py
+!backend/ingest/embedder.py
+
+!backend/ingest/knowledge_graph/
+!backend/ingest/knowledge_graph/entity_extractor.py
+!backend/ingest/knowledge_graph/neo4j_loader.py
+
+# PROMPTS
+!backend/prompts/
+!backend/prompts/Dockerfile
+!backend/prompts/citation_prompt.txt
+!backend/prompts/requirements.txt
+!backend/prompts/system_prompt.txt
+!backend/prompts/templates/
+!backend/prompts/templates/file_name.txt
+
+# =========================
+# FRONTEND
+# =========================
+!frontend/
+!frontend/package.json
+
+!frontend/src/
+!frontend/src/components/
+!frontend/src/components/ChatInterface.tsx
+!frontend/src/components/CitationRenderer.tsx
+!frontend/src/components/DocumentUploader.tsx
+
+!frontend/src/hooks/
+!frontend/src/hooks/useChat.ts
+
+!frontend/src/services/
+!frontend/src/services/api.ts
+
+# =========================
+# KNOWLEDGE BASE
+# =========================
+!knowledge_base/
+!knowledge_base/raw/
+!knowledge_base/raw/processed/
+!knowledge_base/raw/processed/schemas/
+!knowledge_base/raw/processed/schemas/file_name.txt
+
+# =========================
+# SCRIPTS
+# =========================
+!scripts/
+!scripts/evaluate_retrieval.py
+!scripts/ingest_documents.py
+
+# =========================
+# TESTS
+# =========================
+!tests/
+!tests/test_integration.py
+!tests/test_rag.py
+
+# =========================
+# ROOT FILES
+# =========================
+!docker-compose.yml
