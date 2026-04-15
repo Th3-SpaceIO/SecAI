@@ -27,6 +27,12 @@ class DocumentLoader:
     #       MAIN ENTRY POINT
     # ===============================
     def load_document(self, file_path):
+        r"""
+        Usage:
+        - Create `loader = DocumentLoader()`
+        - Call `loader.load_document(file_path)`
+        - Returns a dict with `content` and `metadata`
+        """
         path = Path(file_path)
 
         if not path.is_file():

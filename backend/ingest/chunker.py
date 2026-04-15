@@ -7,6 +7,12 @@ class DocumentChunker:
         self.overlap = overlap
 
     def chunk(self, document: Dict) -> List[Dict]:
+        r"""
+        Usage:
+        - Create `chunker = DocumentChunker(max_tokens=500, overlap=50)`
+        - Call `chunker.chunk(document)`
+        - Returns a list of chunks with `text` and `metadata`
+        """
         text = document["content"]
         metadata = document["metadata"]
 
