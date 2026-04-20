@@ -8,6 +8,7 @@ from openai import OpenAI, APIError, RateLimitError, APIConnectionError
 import time
 from logging import getLogger
 
+
 logger = getLogger(__name__)
 
 #==============================#
@@ -97,3 +98,18 @@ class OpenAIEmbedder(BaseEmbedder):
                 raise RuntimeError(f"OpenAI API error: {e}") from e
 
         raise RuntimeError(f"OpenAI embedding failed after {retries} retries")
+
+
+
+
+
+if __name__ == "__main__":
+    # Example usage
+    start_time = time.time()
+    embedder = HuggingFaceEmbedder()
+    texts = ["welcome to nhs"]
+    embeddings = embedder.embed(texts)
+    end_time = time.time()
+
+    print(embeddings)
+    print(f"Generated {len(embeddings)} embeddings in {end_time - start_time:.2f} seconds.")
