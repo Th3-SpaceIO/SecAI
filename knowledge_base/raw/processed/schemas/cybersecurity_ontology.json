@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "domain": "Cybersecurity",
+  "nodes": [
+    {
+      "label": "VULNERABILITY",
+      "description": "CVE IDs or software flaws",
+      "properties": ["name", "description", "severity"]
+    },
+    {
+      "label": "TOOL",
+      "description": "Security software or hacker tools",
+      "properties": ["name", "category"]
+    },
+    {
+      "label": "TECHNIQUE",
+      "description": "MITRE ATT&CK techniques",
+      "properties": ["id", "name"]
+    },
+    {
+      "label": "PRODUCT",
+      "description": "Software or hardware affected",
+      "properties": ["name", "vendor", "version"]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "VULNERABILITY",
+      "to": "PRODUCT",
+      "type": "AFFECTS"
+    },
+    {
+      "from": "TOOL",
+      "to": "VULNERABILITY",
+      "type": "EXPLOITS"
+    },
+    {
+      "from": "TECHNIQUE",
+      "to": "TOOL",
+      "type": "USES"
+    }
+  ]
+}
